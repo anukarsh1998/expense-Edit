@@ -1,0 +1,420 @@
+<% include ../../partials/navbar %>
+<% include ../../partials/messages %>
+<% include ../../partials/footer %>
+
+
+<link rel="stylesheet" href="/stylesheets/table-sortable.css">
+<script src="/scripts/table-sortable.js" ></script>
+
+
+
+<center><h3>Conveyance Voucher List View</h3></center>
+
+<p id="expenseId"><%= expenseId %></p>
+<div class="container">
+<div class="row mt-5 mb-3 align-items-center">
+    <div class="col-md-5">
+        <a class="btn btn-primary btn-md bg-gray" href="/expense/conveyanceVoucher/<%= expenseId %>" id="createNewConveyanceVoucherButton">Create New </a>
+        <a class="btn btn-primary btn-md bg-gray" href="/expense" >Go To Expense Page</a>
+        <button class="btn btn-primary btn-md" id="refresh">Refresh</button>
+    </div>
+    <div class="col-md-3">
+    <input type="text" class="form-control" placeholder="Search in table..." id="searchField">
+    </div>
+    <div class="col-md-2 text-right">
+    <span class="pr-3">Rows Per Page:</span>
+    </div>
+    <div class="col-md-2">
+        <div class="d-flex justify-content-end">
+            <select class="custom-select" name="rowsPerPage" id="changeRows">
+                <option value="1">1</option>
+                <option value="5" selected>5</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div id="ConveyanceVoucherTable" class="responsive " class="row mt-5 mb-3 align-items-center">
+
+</div>
+
+</div>
+<!-- Conveyance Voucher Details Modal -->
+
+<div id="conveyanceModal" class="modal fade">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Conveyance Voucher View</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+  
+          <div id="detailLoadingSpinner">
+            <center> <img src="/spinner-gif-transparent-background-14.gif" />  </center>
+        </div>
+        <table id="conveyanceVouchertable" class="table">
+
+        </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+  <div id="conveyanceEditModal" class="modal fade ">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Conveyance Form</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      
+        <div class="modal-body" id="editModalBody" >
+            <form name="editConveyanceForm" id="editConveyanceForm" >
+             <div class="form-group">
+                <div class="row">
+                    <div class="col-md-6">
+                      <label for="conveyancName">Name</label>
+                      <input type="text" disabled class="form-control" id="conveyancName" value=""   name="conveyancName" required>
+                    </div>
+                    
+                    <div class="col-md-6">
+                    <label for="expName">Expense Name</label>
+                      <input type="text" disabled id="expName" class="form-control" name="expName">
+                    </div>
+                </div>
+              </div>    
+              <div class="form-group">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="todate">To Date</label>
+                    <input type="date" class="form-control" id="todate" value=""  name="todate" >
+                    </div>
+                    <div class="col-md-6">
+                      <label for="fromdate">From Date</label>
+                      <input type="date" class="form-control" id="fromdate" value=""  name="fromdate" >
+                      </div>
+                </div>     
+            </div>
+
+            <div class="form-group">
+              <div class="row">
+                <div class="col-md-6">
+                  <label for="mode">Mode Of conveyance</label>
+                  <input type="text" class="form-control" id="mode" value=""  name="mode" >
+                  </div>
+                  <div class="col-md-6">
+                    <label for="purpose">Purpose of Travel</label>
+                    <input type="text" class="form-control" id="purpose" value=""  name="purpose" >
+                    </div>
+              </div>     
+          </div>
+
+          <div class="form-group">
+            <div class="row">
+              <div class="col-md-6">
+                <label for="travelKm">KM Travel</label>
+                <input type="number" class="form-control" id="travelKm" value=""  name="travelKm" >
+                </div>
+                <div class="col-md-6">
+                  <label for="amount">Bill Amount</label>
+                  <input type="number" class="form-control" id="amount" value=""  name="amount" >
+                  </div>
+            </div>     
+        </div>
+
+
+              <div class="form-group">
+                  <div class="row">
+                      <div class="col-md-6">
+                        <input type="hidden" class="form-control" id="hide" value=""   name="hide" >
+                        </div>
+                  </div>     
+              </div>
+              <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary" id="editConveyanceButton" data-dismiss="modal">Save</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+            </form>
+          </div>
+       
+  </div>
+</div>
+ 
+
+  <!--   end Of edit Modal-->
+
+<script>
+    $(document).ready(function() { 
+        $('#expenseId').hide();
+        let expenseId =document.getElementById('expenseId').innerHTML;
+
+       // alert(expenseId);
+       
+        let columns ={
+            sequence : 'Sequence',
+            name: 'Conveyance Voucher ',
+            travellingPurpose : 'Purpose of Travelling',
+            amount : 'Amount',
+            modeOfTravel : 'Nature Of Travel',
+            createDdate : 'Created Date',
+            editAction:'Action',
+
+        }
+        
+      var table = $('#ConveyanceVoucherTable').tableSortable({
+        data :[],
+        columns,
+        searchField: '#searchField',
+        sorting: true,
+        rowsPerPage: 5,
+        pagination:true,
+        tableWillMount: () => {
+            console.log('table will mount')
+            
+        },
+        tableDidMount: () => {
+            console.log('table did mount');
+
+            $('#spinner').hide();
+        },
+        tableWillUpdate: () => {
+            console.log('table will update')
+        //  table.refresh();
+        // onLoadTask();
+        },
+        tableDidUpdate: () => {
+        console.log('table did update');
+         anchorClickFunctionalities();
+         addtionalFunctionalities();
+        
+        },
+        tableWillUnmount: () => console.log('table will unmount'),
+        tableDidUnmount: () => console.log('table did unmount'),
+        onPaginationChange: function(nextPage, setPage) {
+            setPage(nextPage);
+        },
+         
+    });
+
+    
+    $('#changeRows').on('change', function() {
+        table.updateRowsPerPage(parseInt($(this).val(), 10));
+        })
+
+        $('#refresh').click(function() {
+            table.refresh(true);
+            onLoadTask();
+        })
+
+
+        $.ajax({
+            url:'/expense/getconveyancelist',
+            type:"get",
+            data:
+            {
+                expenseId:expenseId
+            },
+            datatype:'json'
+        })
+        .done((response)=>{
+            console.log('response '+JSON.stringify(response));
+            table.setData(response, columns);
+            anchorClickFunctionalities();
+            addtionalFunctionalities();
+
+         })
+         .fail((jqXHR,status,error)=>{
+             console.log('jqXHR: '+jqXHR);
+             console.log('error: '+JSON.stringify(jqXHR));
+
+         })
+         function anchorClickFunctionalities(){
+            $('a.conveyanceTag').on('click',function(event){
+                event.stopImmediatePropagation();
+                event.stopPropagation();
+                let conveyanceId = this.id;
+                alert('conveyanceId  '+conveyanceId);
+                $('#conveyanceModal').modal('show');
+
+                $.ajax({
+                    url : '/expense/getConveyanceVoucherDetail',
+                    type:'get',
+                    data : {
+                        conveyanceId : conveyanceId
+                    },
+                    dataType: 'json',
+                    beforeSend : function(){
+                      $('#detailLoadingSpinner').show();
+                    }
+                })
+                    .done((response)=>{
+                        console.log('ConveyanceVoucherDetail '+JSON.stringify(response));
+                      $('#detailLoadingSpinner').hide();
+                      if(response.length > 0)
+                            {
+                              let conveyanceRecord = response[0];
+                              let toDate = formatDate(new Date(conveyanceRecord.to__c));    
+                              let from = formatDate(new Date(conveyanceRecord.from__c));  
+                              let htmlTable = '';
+                              let strCreatedDate = new Date(conveyanceRecord.createddate).toLocaleString();
+                              htmlTable += '<tr>';
+                                  htmlTable += '<td><strong>Name</strong></td>';
+                                  htmlTable += '<td>'+conveyanceRecord.conveyancename+'</td>';
+                                  htmlTable += '<td><strong>Expense Name</strong></td>';
+                                  htmlTable += '<td>'+conveyanceRecord.expname+'</td>';
+                              htmlTable += '</tr>';
+                              htmlTable += '<tr>';
+                                htmlTable += '<td><strong>To Date</strong></td>';
+                                htmlTable += '<td>'+toDate+'</td>';
+                                htmlTable += '<td><strong>From Date  </strong></td>';
+                                htmlTable += '<td>'+from+'</td>';
+                              htmlTable += '</tr>';
+                              htmlTable += '<tr>';
+                                htmlTable += '<td><strong>Amount</strong></td>';
+                                htmlTable += '<td>'+conveyanceRecord.amount__c+'</td>';
+                                htmlTable += '<td><strong>Mode of Conveyance</strong></td>';
+                                htmlTable += '<td>'+conveyanceRecord.mode_of_conveyance__c+'</td>';
+                              htmlTable += '</tr>';
+                              
+                              htmlTable += '<tr>';
+                              htmlTable += '<td><strong>Acitivity Code</strong></td>';
+                              if(conveyanceRecord.activity_code__c != null)
+                                  htmlTable += '<td>'+conveyanceRecord.activity_code__c+'</td>';
+                              else
+                                  htmlTable += '<td></td>';
+
+                              htmlTable += '<td><strong>Project Task</strong></td>';
+                              if(conveyanceRecord.project_tasks__c != null)
+                                  htmlTable += '<td>'+conveyanceRecord.project_tasks__c+'</td>';
+                              else
+                                  htmlTable += '<td></td>';
+                              htmlTable += '</tr>';
+
+                              htmlTable += '<tr>';
+                                htmlTable += '<td><strong>Purpose of Travel</strong></td>';
+                                htmlTable += '<td>'+conveyanceRecord.purpose_of_travel__c+'</td>';
+                                htmlTable += '<td><strong>Create Date</strong></td>';
+                                htmlTable += '<td>'+strCreatedDate+'</td>';
+                              htmlTable += '</tr>';
+
+                              htmlTable += '<tr>';    
+                              htmlTable += '<td><strong>View Image</strong></td>';
+                              if(conveyanceRecord.heroku_image_url__c != null && conveyanceRecord.heroku_image_url__c != '' && conveyanceRecord.heroku_image_url__c != 'demo')
+                                  htmlTable += '<td><a target="_blank" href="'+conveyanceRecord.heroku_image_url__c+'" >Click Here</a></td>';
+                              else
+                                  htmlTable += '<td></td>';
+                              htmlTable += '<td><strong>Kms Travelled</strong></td>';
+                              htmlTable += '<td>'+conveyanceRecord.kms_travelled__c+'</td>';
+                              htmlTable += '</tr>';
+
+                              $('#conveyanceVouchertable').empty();
+                              $('#conveyanceVouchertable').html(htmlTable);
+        
+
+                            }
+
+
+                    })
+                    .fail((jqXHR, status, error) =>{
+                        $('#detailLoadingSpinner').show();
+                        console.log('jqXHR  : '+JSON.stringify(jqXHR));
+                        console.log('error  : '+error);
+                      })
+                })
+        }
+    })
+    function formatDate(date) {
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+    
+        if (month.length < 2) 
+            month = '0' + month;
+        if (day.length < 2) 
+            day = '0' + day;
+    
+        return [year, month ,day].join('-');
+    }
+  
+    function addtionalFunctionalities(){
+        $('.editConveyance').on('click',function(event){
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            let conveyanceId = this.id;
+            alert('conveyance +'+conveyanceId);
+            $('#conveyanceEditModal').modal('show'); 
+            $.ajax({
+                url : '/expense/getConveyanceVoucherDetail',
+                type:'get',
+                data : {
+                    conveyanceId : conveyanceId
+                },
+                dataType: 'json',
+                beforeSend : function(){
+                  $('#detailLoadingSpinner').show();
+                }
+            }) 
+            .done((response)=>{
+                console.log("respnonse "+JSON.stringify(response));
+                let conveyanceRecord = response[0];
+                let toDate = formatDate(new Date(conveyanceRecord.to__c));    
+                let from = formatDate(new Date(conveyanceRecord.from__c));    
+                console.log('TODate '+toDate);         
+                     console.log('from '+from);
+                          document.forms["editConveyanceForm"]["conveyancName"].value = conveyanceRecord.conveyancename;
+                          document.forms["editConveyanceForm"]["expName"].value = conveyanceRecord.expname;
+                          document.forms["editConveyanceForm"]["todate"].value = toDate;
+                          document.forms["editConveyanceForm"]["fromdate"].value = from;
+                          document.forms["editConveyanceForm"]["mode"].value = conveyanceRecord.mode_of_conveyance__c;
+                          document.forms["editConveyanceForm"]["purpose"].value = conveyanceRecord.purpose_of_travel__c;
+                          document.forms["editConveyanceForm"]["amount"].value = conveyanceRecord.amount__c;
+                          document.forms["editConveyanceForm"]["travelKm"].value = conveyanceRecord.kms_travelled__c;
+                          document.forms["editConveyanceForm"]["hide"].value = conveyanceRecord.sfid;
+            })
+            .fail((jqXHR, status, error) =>{
+                $('#detailLoadingSpinner').show();
+                console.log('jqXHR  : '+JSON.stringify(jqXHR));
+                console.log('error  : '+error);
+              })
+        });
+        $('#editConveyanceButton').on('click',function(event){
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            alert('Save Button Clicked !');
+            var $inputs = $('#editConveyanceForm :input');
+            var values = {};
+            $inputs.each(function() {
+                values[this.name] = $(this).val();
+            });
+            
+            alert('formValues : '+JSON.stringify(values));
+            $.ajax({
+              url : '/expense/updateConveyance',
+              type:'post',
+              data: values,
+              dataType : 'json'
+          })
+          .done((response) => {
+                console.log('resonse   :'+response);
+          })
+          .fail((jqXHR, status, error) => {
+                console.log('jqXHR  '+JSON.stringify(jqXHR));
+          })
+})      
+    }
+</script>
